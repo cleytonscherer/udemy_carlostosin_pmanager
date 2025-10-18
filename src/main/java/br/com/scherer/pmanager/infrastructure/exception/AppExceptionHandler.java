@@ -20,13 +20,11 @@ public class AppExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = RequestException.class)
     public ResponseEntity<Object> handleRequestException(RequestException ex, WebRequest request) {
-
         return handleException(ex, ex.getErrorCode(), ex.getMessage(), null, HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
-
         return handleException(ex, null, ex.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
 
@@ -56,9 +54,7 @@ public class AppExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatus  status,
             WebRequest request
     ) {
-
         ServletWebRequest servletWebRequest = (ServletWebRequest) request;
-
         return handleExceptionInternal(
                 ex,
                 RestError

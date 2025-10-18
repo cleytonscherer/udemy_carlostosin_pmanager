@@ -1,6 +1,5 @@
 package br.com.scherer.pmanager.infrastructure.dto;
 
-import br.com.scherer.pmanager.domain.model.ProjectStatus;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class SaveProjectDataDto {
+public class SaveProjectDataDTO {
     @NotNull(message = "Nome do Projeto deve ser informado")
     @Size(min = 1, max = 80, message = "Nome do Projeto deve ter tamanho entre 1 e 80 caracteres")
     private final String        name;

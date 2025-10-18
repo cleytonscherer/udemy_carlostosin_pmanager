@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class ProjectDto {
+public class ProjectDTO {
     private final String      id;
     private final String      name;
     private final String      description;
@@ -15,8 +15,8 @@ public class ProjectDto {
     private final LocalDate   finalDate;
     private final ProjectStatus status;
 
-    public static ProjectDto create(Project project) {
-        return new ProjectDto(
+    public static ProjectDTO create(Project project) {
+        return new ProjectDTO(
           project.getId(),
           project.getName(),
           project.getDescription(),
