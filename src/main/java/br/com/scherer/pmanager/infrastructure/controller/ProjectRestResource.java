@@ -22,7 +22,7 @@ public class ProjectRestResource {
     private final ProjectService projectService;
 
     @PostMapping
-    public ResponseEntity<ProjectDTO> createProect(@RequestBody @Valid SaveProjectDataDTO saveProjectData) {
+    public ResponseEntity<ProjectDTO> createProject(@RequestBody @Valid SaveProjectDataDTO saveProjectData) {
         Project project = projectService.createProject(saveProjectData);
         return ResponseEntity
                 .created(URI.create(PATH_PROJECTS + "/" + project.getId()))
