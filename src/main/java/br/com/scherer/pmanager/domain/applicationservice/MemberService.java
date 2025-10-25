@@ -1,11 +1,14 @@
 package br.com.scherer.pmanager.domain.applicationservice;
 
 import br.com.scherer.pmanager.domain.entity.Member;
+import br.com.scherer.pmanager.domain.exception.MemberNotFoundException;
 import br.com.scherer.pmanager.domain.repository.MemberRepository;
 import br.com.scherer.pmanager.infrastructure.dto.SaveMemberDataDTO;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -14,6 +17,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
+    @Transactional
     public Member createMember(SaveMemberDataDTO saveMemberData) {
         Member member = Member
                 .builder()
@@ -25,6 +29,12 @@ public class MemberService {
 
         memberRepository.save(member);
         return member;
+    }
+
+    public Member loadMemberById(String memberId) {
+        return memberRepository
+                .findByIdAndDeleted(memberId, false)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
     }
 
 }
