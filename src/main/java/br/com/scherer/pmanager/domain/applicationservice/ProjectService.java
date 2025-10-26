@@ -6,7 +6,6 @@ import br.com.scherer.pmanager.domain.exception.DuplicatedProjectException;
 import br.com.scherer.pmanager.domain.exception.InvalidProjectStatusException;
 import br.com.scherer.pmanager.domain.exception.ProjectNotFoundException;
 import br.com.scherer.pmanager.domain.model.ProjectStatus;
-import br.com.scherer.pmanager.domain.repository.MemberRepository;
 import br.com.scherer.pmanager.domain.repository.ProjectRepository;
 import br.com.scherer.pmanager.infrastructure.dto.SaveProjectDataDTO;
 import jakarta.transaction.Transactional;
@@ -14,9 +13,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class ProjectService {
 //    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
 
     private final ProjectRepository projectRepository;
-    private final MemberRepository memberRepository;
+    private final MemberService memberService;
 
     @Transactional
     public Project createProject(SaveProjectDataDTO saveProjectData) {
@@ -102,10 +103,11 @@ public class ProjectService {
     }
 
     private void addMembersToProject(Set<String> memberIds, Project project) {
-        Set<String> membersIdNotNull = Optional.ofNullable(memberIds).orElse(Set.of());
+        List<Member> members = Optional.ofNullable(memberIds).orElse(Set.of())
+                .stream()
+                .map(memberService::loadMemberById)
+                .collect(Collectors.toList());
 
-        membersIdNotNull.stream().map(id -> memberRepository.findByIdAndDeleted(id, false));
-
-        project.setMembers();
+        project.setMembers(members);
     }
 }
