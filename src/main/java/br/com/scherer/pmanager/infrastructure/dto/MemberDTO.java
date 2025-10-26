@@ -1,7 +1,13 @@
 package br.com.scherer.pmanager.infrastructure.dto;
 
 import br.com.scherer.pmanager.domain.entity.Member;
+import br.com.scherer.pmanager.domain.entity.Project;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 public class MemberDTO {
@@ -10,13 +16,21 @@ public class MemberDTO {
     private final String    secret;
     private final String    name;
     private final String    email;
+    private final Set<String> projectIds;
 
     public static MemberDTO create(Member member) {
         return new MemberDTO(
                 member.getId(),
                 member.getSecret(),
                 member.getName(),
-                member.getEmail()
+                member.getEmail(),
+                Optional
+                        .ofNullable(member.getProjects())
+                        .orElse(List.of())
+                        .stream()
+                        .map(Project::getId)
+                        .collect(Collectors.toSet())
+
         );
     }
 }

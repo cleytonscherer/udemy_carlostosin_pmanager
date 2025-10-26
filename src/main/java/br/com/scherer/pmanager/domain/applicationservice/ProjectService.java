@@ -1,18 +1,22 @@
 package br.com.scherer.pmanager.domain.applicationservice;
 
+import br.com.scherer.pmanager.domain.entity.Member;
 import br.com.scherer.pmanager.domain.entity.Project;
+import br.com.scherer.pmanager.domain.exception.DuplicatedProjectException;
 import br.com.scherer.pmanager.domain.exception.InvalidProjectStatusException;
 import br.com.scherer.pmanager.domain.exception.ProjectNotFoundException;
 import br.com.scherer.pmanager.domain.model.ProjectStatus;
+import br.com.scherer.pmanager.domain.repository.MemberRepository;
 import br.com.scherer.pmanager.domain.repository.ProjectRepository;
 import br.com.scherer.pmanager.infrastructure.dto.SaveProjectDataDTO;
-import com.sun.jdi.request.DuplicateRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class ProjectService {
 //    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
 
     private final ProjectRepository projectRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public Project createProject(SaveProjectDataDTO saveProjectData) {
@@ -29,7 +34,7 @@ public class ProjectService {
         if (existsProjectWithName(saveProjectData.getName(), null)) {
             log.info("Projecto duplicado: " + saveProjectData.getName());
 
-            throw new DuplicateRequestException(saveProjectData.getName());
+            throw new DuplicatedProjectException(saveProjectData.getName());
         }
 
         Project project = Project
@@ -42,6 +47,8 @@ public class ProjectService {
                 .build();
 
         projectRepository.save(project);
+
+        addMembersToProject(saveProjectData.getMemberIds(), project);
 
         log.info("Project created: {} ", project);
 
@@ -62,7 +69,7 @@ public class ProjectService {
     public Project updateProject(String projectId, SaveProjectDataDTO saveProjectData) {
 
         if (existsProjectWithName(saveProjectData.getName(), projectId)) {
-            throw new DuplicateRequestException(saveProjectData.getName());
+            throw new DuplicatedProjectException(saveProjectData.getName());
         }
 
         Project project = loadProject(projectId);
@@ -72,6 +79,8 @@ public class ProjectService {
         project.setInitialDate(saveProjectData.getInitialDate());
         project.setFinalDate(saveProjectData.getFinalDate());
         project.setStatus(converttoProjectStatus(saveProjectData.getStatus()));
+
+        addMembersToProject(saveProjectData.getMemberIds(), project);
 
         return project;
     }
@@ -90,5 +99,13 @@ public class ProjectService {
                 .filter(p -> !Objects.equals(p.getId(), idToExclude))
                 .isPresent();
 
+    }
+
+    private void addMembersToProject(Set<String> memberIds, Project project) {
+        Set<String> membersIdNotNull = Optional.ofNullable(memberIds).orElse(Set.of());
+
+        membersIdNotNull.stream().map(id -> memberRepository.findByIdAndDeleted(id, false));
+
+        project.setMembers();
     }
 }

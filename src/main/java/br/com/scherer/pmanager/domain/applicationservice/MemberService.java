@@ -3,12 +3,14 @@ package br.com.scherer.pmanager.domain.applicationservice;
 import br.com.scherer.pmanager.domain.entity.Member;
 import br.com.scherer.pmanager.domain.exception.MemberNotFoundException;
 import br.com.scherer.pmanager.domain.repository.MemberRepository;
+import br.com.scherer.pmanager.domain.exception.DuplicateMemberException;
 import br.com.scherer.pmanager.infrastructure.dto.SaveMemberDataDTO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -19,6 +21,9 @@ public class MemberService {
 
     @Transactional
     public Member createMember(SaveMemberDataDTO saveMemberData) {
+        if (existsMemberWithEmail(saveMemberData.getEmail(), null)) {
+            throw new DuplicateMemberException(saveMemberData.getEmail());
+        }
         Member member = Member
                 .builder()
                 .name(saveMemberData.getName())
@@ -35,6 +40,45 @@ public class MemberService {
         return memberRepository
                 .findByIdAndDeleted(memberId, false)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
+    }
+
+    @Transactional
+    public void deleteMember(String memberId) {
+        Member member = loadMemberById(memberId);
+        member.setDeleted(true);
+    }
+
+    @Transactional
+    public Member updateMember(String memberId, SaveMemberDataDTO saveMemberData) {
+        if (existsMemberWithEmail(saveMemberData.getEmail(), memberId)) {
+            throw new DuplicateMemberException(saveMemberData.getEmail());
+        }
+
+        Member member = loadMemberById(memberId);
+        member.setName(saveMemberData.getName());
+        member.setEmail(saveMemberData.getEmail());
+        return member;
+    }
+
+    private boolean existsMemberWithEmail(String email, String idtoExclude) {
+        return memberRepository.findByEmailAndDeleted(email, false)
+                .filter(m -> !Objects.equals(m.getId(), idtoExclude))
+                .isPresent();
+    }
+
+    public List<Member> findMembers(String email) {
+        List<Member> members;
+
+        if (Objects.isNull(email)) {
+            members = memberRepository.findAllNotDeleted();
+        } else {
+            members = memberRepository
+                    .findByEmailAndDeleted(email, false)
+                    .map(List::of)
+                    .orElse(List.of());
+
+        }
+        return members;
     }
 
 }
