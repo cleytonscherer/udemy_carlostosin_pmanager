@@ -7,12 +7,18 @@ import br.com.scherer.pmanager.domain.exception.InvalidTaskStatusException;
 import br.com.scherer.pmanager.domain.exception.TaskNotFoundException;
 import br.com.scherer.pmanager.domain.model.TaskStatus;
 import br.com.scherer.pmanager.domain.repository.TaskRepository;
+import br.com.scherer.pmanager.infrastructure.config.AppConfigProperties;
 import br.com.scherer.pmanager.infrastructure.dto.SaveTaskDataDTO;
+import br.com.scherer.pmanager.infrastructure.util.PaginationHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +27,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectService projectService;
     private final MemberService memberService;
+    private final AppConfigProperties props;
 
     @Transactional
     public Task createTask(SaveTaskDataDTO saveTaskData) {
@@ -72,6 +79,43 @@ public class TaskService {
         task.setAssignedMember(member);
 
         return task;
+    }
+
+    public Page<Task> findTasks(
+            String  projectId,
+            String  memberId,
+            String  statusStr,
+            String  partialTitle,
+            Integer pageNumber,
+            Integer pageSize,
+            String  directionStr,
+            List<String> properties
+    ) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "title");
+
+        return taskRepository.find(
+                projectId,
+                memberId,
+                Optional.ofNullable(statusStr).map(this::convertToTaskStatus).orElse(null),
+                partialTitle,
+                /*
+                PageRequest.of(
+                        Optional.ofNullable(pageNumber).orElse(0),
+                        Optional.ofNullable(pageSize).orElse(3),
+                        sort
+                ),
+                directionStr,
+                properties
+                 */
+                PaginationHelper.createPageable(
+                        pageNumber,
+//                        pageSize,
+                        props.getPagSize(),
+                        directionStr,
+                        properties
+                )
+
+        );
     }
 
     private TaskStatus convertToTaskStatus(String statusStr) {
