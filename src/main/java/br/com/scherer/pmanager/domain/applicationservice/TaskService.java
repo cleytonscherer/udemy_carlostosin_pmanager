@@ -110,7 +110,7 @@ public class TaskService {
                 PaginationHelper.createPageable(
                         pageNumber,
 //                        pageSize,
-                        props.getPagSize(),
+                        props.getGeneral().getPageSize(),
                         directionStr,
                         properties
                 )
