@@ -22,6 +22,11 @@ spring:
       ddl-auto: update
   jackson:
     default-property-inclusion: non_null
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: pmanagerdb
 server:
   port: 8080
   servlet:
@@ -31,5 +36,6 @@ app:
     pageSize: 3
   security:
     apikey: thekey
+    expirationDays: 2
 
 

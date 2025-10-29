@@ -8,7 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AppConfigProperties {
 
     private final General general;
-
     private final Security security;
 
     @Data
@@ -19,8 +18,6 @@ public class AppConfigProperties {
     @Data
     public static class Security {
         private final String apiKey;
+        private final Integer expirationDays;
     }
-
-
-
 }
