@@ -1,6 +1,7 @@
 package br.com.scherer.pmanager.domain.applicationservice;
 
 import br.com.scherer.pmanager.domain.document.ApiKey;
+import br.com.scherer.pmanager.domain.exception.ApiKeyExpiredException;
 import br.com.scherer.pmanager.domain.exception.ApiKeyNotFoundException;
 import br.com.scherer.pmanager.domain.repository.ApiKeyRepository;
 import br.com.scherer.pmanager.infrastructure.config.AppConfigProperties;
@@ -40,9 +41,23 @@ public class ApíKeyService {
         apiKeyRepository.save(apiKey);
     }
 
+    public void validateApiKey(String apiKey) {
+        ApiKey apiKeyObj = loadApiKeyByValue(apiKey);
+
+        if (apiKeyObj.isExpired(Instant.now())) {
+            throw new ApiKeyExpiredException(apiKeyObj.getId());
+        }
+    }
+
     private ApiKey loadApiKeyById(String id) {
         return apiKeyRepository
                 .findById(id)
                 .orElseThrow(() -> new ApiKeyNotFoundException(id));
+    }
+
+    private ApiKey loadApiKeyByValue(String apiKey) {
+        return apiKeyRepository
+                .findByValue(apiKey)
+                .orElseThrow(() -> new ApiKeyNotFoundException(apiKey));
     }
 }
